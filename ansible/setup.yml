@@ -1,0 +1,26 @@
+---
+- name: Preparar nodos de Ubuntu 24
+  hosts: mis_nodos
+  tasks:
+    - name: Actualizar repositorios y sistema
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Instalar herramientas esenciales
+      apt:
+        name:
+          - vim
+          - htop
+          - curl
+          - git
+          - net-tools
+        state: present
+
+    - name: Mostrar el uptime de las maquinas
+      command: uptime
+      register: uptime_output
+
+    - name: Imprimir el uptime
+      debug:
+        msg: "{{ uptime_output.stdout }}"

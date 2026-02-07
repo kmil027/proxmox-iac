@@ -1,0 +1,46 @@
+pipeline {
+    agent any
+
+    environment {
+        // Mapeamos los secretos de Jenkins a variables que Terraform entiende
+        TF_VAR_proxmox_api_token_id     = credentials('PROXMOX_TOKEN_ID')
+        TF_VAR_proxmox_api_token_secret = credentials('PROXMOX_TOKEN_SECRET')
+    }
+
+    stages {
+        stage('Validar Entorno') {
+            steps {
+                sh 'terraform version'
+                sh 'ansible --version'
+            }
+        }
+
+        stage('Terraform Apply') {
+            steps {
+                dir('terraform') { // Cambia a tu carpeta de terraform
+                    sh 'terraform init'
+                    sh 'terraform apply -auto-approve'
+                }
+            }
+        }
+
+        stage('Ansible Config') {
+            steps {
+                // Pausa de 20s para que los LXC arranquen y el SSH esté listo
+                sleep 20
+                dir('ansible') { // Cambia a tu carpeta de ansible
+                    sh 'ansible-playbook -i hosts.ini setup.yml'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Limpiando entorno...'
+        }
+        success {
+            echo '¡Infraestructura desplegada y configurada con éxito!'
+        }
+    }
+}
