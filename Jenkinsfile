@@ -15,6 +15,13 @@ pipeline {
             }
         }
 
+        stage('Limpieza y Checkout') {
+            steps {
+                cleanWs() // <--- Esto borra el .tfstate viejo de Jenkins
+                checkout scm
+            }
+        }
+
         stage('Terraform Apply') {
             steps {
                 dir('terraform') { // Cambia a tu carpeta de terraform
