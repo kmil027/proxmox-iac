@@ -15,12 +15,12 @@ pipeline {
             }
         }
 
-        stage('Limpieza y Checkout') {
-            steps {
-                cleanWs() 
-                checkout scm
-            }
-        }
+        // stage('Limpieza y Checkout') {
+        //     steps {
+        //         cleanWs() 
+        //         checkout scm
+        //     }
+        // }
 
         stage('Terraform Apply') {
             steps {

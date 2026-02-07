@@ -43,7 +43,7 @@ resource "proxmox_lxc" "nuevo_contenedor" {
   network {
     name   = "eth0"
     bridge = "vmbr0"
-    ip     = "192.168.10.${220 + count.index}/24"
+    ip     = "192.168.10.${223 + count.index}/24"
     gw     = "192.168.10.1"
   }
 }
