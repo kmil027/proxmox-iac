@@ -24,6 +24,7 @@ resource "proxmox_lxc" "nuevo_contenedor" {
   password    = "Password123"
   unprivileged = true
   start        = true # ¡Importante! Si no arrancan, Ansible no puede entrar
+  vmid  = 200 + count.index # Esto forzará los IDs 200, 201 y 202 siempre
   
   ssh_public_keys = <<-EOT
     ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILJReuwQ2miBxUkYbYKCj/ZGrgIdm/PeM/R4sc8RFIWL

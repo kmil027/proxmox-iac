@@ -15,12 +15,12 @@ pipeline {
             }
         }
 
-        stage('Limpieza y Checkout') {
-            steps {
-                cleanWs() // <--- Esto borra el .tfstate viejo de Jenkins
-                checkout scm
-            }
-        }
+        // stage('Limpieza y Checkout') {
+        //     steps {
+        //         cleanWs() // <--- Esto borra el .tfstate viejo de Jenkins
+        //         checkout scm
+        //     }
+        // }
 
         stage('Terraform Apply') {
             steps {
@@ -34,7 +34,7 @@ pipeline {
         stage('Ansible Config') {
             steps {
                 echo 'Esperando a que los nodos despierten...'
-                scmleep 60 // Aumentamos el tiempo
+                sleep 60 // Aumentamos el tiempo
                 dir('ansible') { // Cambia a tu carpeta de ansible
                     sshagent(['ssh-proxmox-key']) { // El ID de la credencial que creaste en Jenkins
                         sh 'ANSIBLE_HOST_KEY_CHECKING=False ansible all -i hosts.ini -m ping'
