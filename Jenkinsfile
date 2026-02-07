@@ -29,7 +29,9 @@ pipeline {
                 // Pausa de 20s para que los LXC arranquen y el SSH esté listo
                 sleep 20
                 dir('ansible') { // Cambia a tu carpeta de ansible
-                    sh 'ansible-playbook -i hosts.ini setup.yml'
+                    sshagent(['ssh-proxmox-key']) { // El ID de la credencial que creaste en Jenkins
+                        sh 'ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i hosts.ini setup.yml'
+                    }
                 }
             }
         }

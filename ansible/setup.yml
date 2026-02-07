@@ -10,11 +10,7 @@
     - name: Instalar herramientas esenciales
       apt:
         name:
-          - vim
-          - htop
-          - curl
-          - git
-          - net-tools
+          - apache2
         state: present
 
     - name: Mostrar el uptime de las maquinas
