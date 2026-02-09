@@ -32,7 +32,6 @@ resource "proxmox_lxc" "nuevo_contenedor" {
 
   features {
     nesting = true
-    keyctl  = true
   }
 
   // Definición de recursos
