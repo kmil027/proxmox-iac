@@ -2,25 +2,44 @@
 - name: Preparar nodos de Ubuntu 24
   hosts: mis_nodos
   tasks:
-    # - name: Actualizar repositorios y sistema
-    #   apt:
-    #     update_cache: yes
-    #     upgrade: dist
-    #   register: apt_result
-    #   until: apt_result is success
-    #   retries: 3
-    #   delay: 5    
+    - name: Eliminar Apache previo para liberar puerto 80
+      apt:
+        name: apache2
+        state: absent
 
-    # - name: Instalar herramientas esenciales
-    #   apt:
-    #     name:
-    #       - apache2
-    #     state: present
+    - name: Instalar dependencias de Docker
+      apt:
+        name: [apt-transport-https, ca-certificates, curl, software-properties-common]
+        update_cache: yes
 
-    - name: Mostrar el uptime de las maquinas
-      command: uptime
-      register: uptime_output
+    - name: Instalar Docker Engine
+      apt:
+        name: docker.io
+        state: present
 
-    - name: Imprimir el uptime
-      debug:
-        msg: "{{ uptime_output.stdout }}"
+    - name: Iniciar y habilitar Docker
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+
+- name: Configurar K3s Master (Nodo 1)
+  hosts: k3s_server
+  become: true
+  tasks:
+    - name: Instalar K3s Server
+      shell: curl -sfL https://get.k3s.io | sh -
+      register: k3s_install
+
+    - name: Obtener el Token del Cluster
+      shell: cat /var/lib/rancher/k3s/server/node-token
+      register: node_token
+
+- name: Configurar K3s Workers (Nodos 2 y 3)
+  hosts: k3s_agents
+  become: true
+  vars:
+    master_ip: "192.168.10.230"
+  tasks:
+    - name: Instalar K3s Agent y unir al clúster
+      shell: "curl -sfL https://get.k3s.io | K3S_URL=https://{{ master_ip }}:6443 K3S_TOKEN={{ hostvars['nodo_master']['node_token']['stdout'] }} sh -"
