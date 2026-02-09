@@ -2,20 +2,20 @@
 - name: Preparar nodos de Ubuntu 24
   hosts: mis_nodos
   tasks:
-    - name: Actualizar repositorios y sistema
-      apt:
-        update_cache: yes
-        upgrade: dist
-      register: apt_result
-      until: apt_result is success
-      retries: 3
-      delay: 5    
+    # - name: Actualizar repositorios y sistema
+    #   apt:
+    #     update_cache: yes
+    #     upgrade: dist
+    #   register: apt_result
+    #   until: apt_result is success
+    #   retries: 3
+    #   delay: 5    
 
-    - name: Instalar herramientas esenciales
-      apt:
-        name:
-          - apache2
-        state: present
+    # - name: Instalar herramientas esenciales
+    #   apt:
+    #     name:
+    #       - apache2
+    #     state: present
 
     - name: Mostrar el uptime de las maquinas
       command: uptime
