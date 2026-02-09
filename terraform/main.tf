@@ -30,6 +30,11 @@ resource "proxmox_lxc" "nuevo_contenedor" {
     ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILJReuwQ2miBxUkYbYKCj/ZGrgIdm/PeM/R4sc8RFIWL
   EOT
 
+  features {
+    nesting = true
+    keyctl  = true
+  }
+
   // Definición de recursos
   cores  = 1
   memory = 512

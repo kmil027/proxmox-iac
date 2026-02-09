@@ -2,9 +2,6 @@
 - name: Preparar nodos de Ubuntu 24
   hosts: mis_nodos
   tasks:
-    - name: Corregir desfase de tiempo (Sincronizar con el hardware)
-      shell: "hwclock -s"
-      ignore_errors: yes
     - name: Actualizar repositorios y sistema
       apt:
         update_cache: yes
@@ -12,7 +9,7 @@
       register: apt_result
       until: apt_result is success
       retries: 3
-      delay: 5
+      delay: 5    
 
     - name: Instalar herramientas esenciales
       apt:
