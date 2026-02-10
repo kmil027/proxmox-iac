@@ -1,6 +1,7 @@
 ---
 - name: Nivel 3 - Preparación de todos los nodos (LXC Fix)
   hosts: mis_nodos
+  gather_facts: false
   become: true
   vars:
     # Estas variables fuerzan a apt a no ser interactivo
@@ -17,7 +18,7 @@
         update_cache: yes
         upgrade: yes  # O 'yes' si prefieres un upgrade estándar
         cache_valid_time: 3600  # Solo actualiza si pasó más de una hora (ahorra tiempo)
-      register: apt_res
+        dpkg_options: 'force-confold,force-confdef' # <--- Evita preguntas interactivas
       # Forzamos opciones para que no pregunte por archivos de configuración
       environment:
         DEBIAN_FRONTEND: noninteractive
