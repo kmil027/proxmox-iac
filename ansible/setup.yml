@@ -1,41 +1,40 @@
 ---
-- name: Preparar nodos de Ubuntu 24
+- name: Nivel 3 - Preparación de todos los nodos
   hosts: mis_nodos
+  become: true
   tasks:
-    - name: Eliminar Apache previo para liberar puerto 80
+    - name: Limpiar instalaciones conflictivas de Docker/Containerd
       apt:
-        name: apache2
+        name: [apache2, containerd, docker, docker-engine, docker.io, runc]
         state: absent
+        purge: yes
 
-    - name: Instalar dependencias de Docker
+    - name: Instalar Docker y dependencias
       apt:
-        name: [apt-transport-https, ca-certificates, curl, software-properties-common]
+        name: [docker.io, curl, ca-certificates]
+        state: present
         update_cache: yes
 
-    - name: Instalar Docker Engine
-      apt:
-        name: docker.io
-        state: present
-
-    - name: Iniciar y habilitar Docker
+    - name: Asegurar que Docker esté iniciado
       systemd:
         name: docker
         enabled: yes
         state: started
 
-- name: Configurar K3s Master (Nodo 1)
+- name: Configurar K3s Master (lab-control)
   hosts: k3s_server
   become: true
   tasks:
     - name: Instalar K3s Server
       shell: curl -sfL https://get.k3s.io | sh -
-      register: k3s_install
+      args:
+        creates: /usr/local/bin/k3s
 
     - name: Obtener el Token del Cluster
       shell: cat /var/lib/rancher/k3s/server/node-token
       register: node_token
 
-- name: Configurar K3s Workers (Nodos 2 y 3)
+- name: Configurar K3s Workers (Proxmox LXC)
   hosts: k3s_agents
   become: true
   vars:
@@ -43,3 +42,5 @@
   tasks:
     - name: Instalar K3s Agent y unir al clúster
       shell: "curl -sfL https://get.k3s.io | K3S_URL=https://{{ master_ip }}:6443 K3S_TOKEN={{ hostvars['nodo_master']['node_token']['stdout'] }} sh -"
+      args:
+        creates: /etc/rancher/k3s/k3s-agent.env
