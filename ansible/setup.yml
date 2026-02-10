@@ -79,6 +79,7 @@
         INSTALL_K3S_EXEC="agent \
         --kubelet-arg=protect-kernel-defaults=false \
         --kubelet-arg=make-iptables-util-chains=true \
+        --kubelet-arg=feature-gates=KubeletInUserNamespace=true \
         --extra-kube-proxy-args=conntrack-max-per-core=0" sh -
       args:
         creates: /etc/rancher/k3s/k3s-agent.env
