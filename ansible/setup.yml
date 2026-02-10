@@ -8,21 +8,16 @@
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
     ansible_stdout_callback: yaml
   tasks:
-    # - name: Limpiar paquetes conflictivos
-    #   apt:
-    #     name: [containerd.io, containerd, runc]
-    #     state: absent
+    - name: Limpiar paquetes conflictivos
+      apt:
+        name: [containerd.io, containerd, runc]
+        state: absent
     
     - name: Actualizar repositorios y paquetes
       apt:
         update_cache: yes
+        force_apt_get: yes
         cache_valid_time: 3600  # Solo actualiza si pasó más de una hora (ahorra tiempo)
-
-    # - name: Forzar actualización completa de repositorios
-    #   apt:
-    #     update_cache: yes
-    #     force_apt_get: yes
-    #     cache_valid_time: 0
 
     - name: Instalar Dependencias
       apt:
