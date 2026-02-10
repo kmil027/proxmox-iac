@@ -19,7 +19,7 @@
 
     - name: Instalar Dependencias
       apt:
-        name: [curl]
+        name: [curl,htop]
         state: latest
         update_cache: yes
 
