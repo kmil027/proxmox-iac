@@ -1,29 +1,18 @@
 ---
-- name: Preparación de los nodos
+- name: Nivel 1 - Preparación de todos los nodos (LXC Fix)
   hosts: mis_nodos
-  gather_facts: false
+  gather_facts: yes
   become: true
-  vars:
-    # Estas variables fuerzan a apt a no ser interactivo
-    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
-    ansible_stdout_callback: yaml
   tasks:
-    - name: Limpiar paquetes conflictivos
-      apt:
-        name: [containerd.io, containerd, runc]
-        state: absent
-    
-    - name: Actualizar repositorios y paquetes
+    - name: Actualizar repositorios
       apt:
         update_cache: yes
-        force_apt_get: yes
-        cache_valid_time: 3600  # Solo actualiza si pasó más de una hora (ahorra tiempo)
+        cache_valid_time: 3600
 
     - name: Instalar Dependencias
       apt:
-        name: [curl,htop]
+        name: [curl, htop, nfs-common, open-iscsi]
         state: present
-        update_cache: yes
 
     - name: Fix /dev/kmsg para entornos LXC
       shell: |
@@ -33,32 +22,51 @@
       args:
         creates: /dev/kmsg
 
-- name: Configurar K3s Master (lab-control)
+    - name: Engañar a modprobe (LXC Kernel Fix)
+      shell: |
+        ln -sf /bin/true /usr/local/bin/modprobe
+        ln -sf /bin/true /sbin/modprobe
+      args:
+        creates: /usr/local/bin/modprobe
+
+- name: Nivel 2 - Configurar K3s Master (nodo4)
   hosts: k3s_server
   become: true
   tasks:
-    - name: Instalar K3s Server con flags de compatibilidad
+    - name: Fix Mount Flags Master
+      shell: mount --make-rshared /
+      ignore_errors: yes
+
+    - name: Instalar K3s Server
       shell: |
         curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server \
-        --kubelet-arg=protect-kernel-defaults=false \
-        --kubelet-arg=make-iptables-util-chains=true" sh -
+        --protect-kernel-defaults=false \
+        --disable-agent" sh -
       args:
         creates: /usr/local/bin/k3s
-
-    - name: Esperar a que el token sea generado
-      wait_for:
-        path: /var/lib/rancher/k3s/server/node-token
 
     - name: Obtener el Token del Cluster
       shell: cat /var/lib/rancher/k3s/server/node-token
       register: node_token
-    
-    - name: Fix Mount Flags para K3s en LXC
-      shell: |
-        mount --make-rshared /
+
+- name: Nivel 3 - Configurar K3s Workers (nodo1, nodo2, nodo3)
+  hosts: k3s_agents
+  become: true
+  serial: 1
+  vars:
+    master_ip: "{{ hostvars[groups['k3s_server'][0]]['ansible_host'] }}"
+  tasks:
+    - name: Esperar a que el API Server del Master esté listo
+      wait_for:
+        host: "{{ master_ip }}"
+        port: 6443
+        timeout: 180
+
+    - name: Fix Mount Flags Worker
+      shell: mount --make-rshared /
       ignore_errors: yes
 
-    - name: Crear carpeta de manifiestos (LXC Fix)
+    - name: Crear directorios necesarios
       file:
         path: "{{ item }}"
         state: directory
@@ -66,47 +74,14 @@
       with_items:
         - /var/lib/rancher/k3s/agent
         - /var/lib/rancher/k3s/data
+        - /run/k3s
 
-    - name: Montar memoria compartida manualmente (LXC Fix)
-      shell: |
-        mount -t tmpfs tmpfs /run
-        mount -t tmpfs tmpfs /var/run
-      ignore_errors: yes
-
-- name: Configurar K3s Workers (Proxmox LXC)
-  hosts: k3s_agents
-  become: true
-  serial: 1  # <--- Instala de uno en uno para evitar saturar el CPU del Proxmox
-  vars:
-    # Usamos la IP del primer host en el grupo k3s_server dinámicamente
-    master_ip: "{{ hostvars[groups['k3s_server'][0]]['ansible_host'] }}"
-  tasks:
-    - name: Esperar a que el puerto 6443 del Master esté abierto
-      wait_for:
-        host: "{{ master_ip }}"
-        port: 6443
-        delay: 5
-        timeout: 60
-
-    - name: Pausa para estabilidad del sistema
-      pause:
-        seconds: 10
-    
-    - name: Engañar a modprobe en el contenedor
-      shell: |
-        ln -s /bin/true /usr/local/bin/modprobe
-      args:
-        creates: /usr/local/bin/modprobe
-
-    - name: Instalar K3s Agent y unir al clúster
+    - name: Instalar K3s Agent
       shell: |
         curl -sfL https://get.k3s.io | K3S_URL=https://{{ master_ip }}:6443 \
         K3S_TOKEN={{ hostvars[groups['k3s_server'][0]]['node_token']['stdout'] }} \
         INSTALL_K3S_EXEC="agent \
         --protect-kernel-defaults=false \
-        --kube-proxy-arg=conntrack-max-per-core=0 \
-        --kubelet-arg=feature-gates=KubeletInUserNamespace=true" sh -
+        --kube-proxy-arg=conntrack-max-per-core=0" sh -
       args:
-        creates: /etc/rancher/k3s/k3s-agent.env
-      environment:
-        INSTALL_K3S_SKIP_ENABLE: "false" # Asegura que intente activar el servicio
+        creates: /usr/local/bin/k3s-agent
