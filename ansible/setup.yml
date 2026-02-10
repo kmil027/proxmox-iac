@@ -1,5 +1,5 @@
 ---
-- name: Nivel 3 - Preparación de todos los nodos (LXC Fix)
+- name: Preparación de los nodos
   hosts: mis_nodos
   gather_facts: false
   become: true
@@ -56,7 +56,7 @@
 - name: Configurar K3s Workers (Proxmox LXC)
   hosts: k3s_agents
   become: true
-  serial: 1  # <--- Instala de uno en uno para evitar saturar el CPU del Proxmox
+  # serial: 1  # <--- Instala de uno en uno para evitar saturar el CPU del Proxmox
   vars:
     # Usamos la IP del primer host en el grupo k3s_server dinámicamente
     master_ip: "{{ hostvars[groups['k3s_server'][0]]['ansible_host'] }}"
