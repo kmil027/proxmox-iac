@@ -68,10 +68,19 @@
         delay: 5
         timeout: 60
 
+    - name: Pausa para estabilidad del sistema
+      pause:
+        seconds: 60
+
     - name: Instalar K3s Agent y unir al clúster
       shell: |
         curl -sfL https://get.k3s.io | K3S_URL=https://{{ master_ip }}:6443 \
         K3S_TOKEN={{ hostvars[groups['k3s_server'][0]]['node_token']['stdout'] }} \
-        INSTALL_K3S_EXEC="agent --kubelet-arg=protect-kernel-defaults=false" sh -
+        INSTALL_K3S_EXEC="agent \
+        --kubelet-arg=protect-kernel-defaults=false \
+        --kubelet-arg=make-iptables-util-chains=true \
+        --extra-kube-proxy-args=conntrack-max-per-core=0" sh -
       args:
         creates: /etc/rancher/k3s/k3s-agent.env
+      environment:
+        INSTALL_K3S_SKIP_ENABLE: "false" # Asegura que intente activar el servicio
