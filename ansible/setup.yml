@@ -3,10 +3,10 @@
   hosts: mis_nodos
   become: true
   tasks:
-    - name: Forzar remoción de paquetes conflictivos (Shell)
-      shell: |
-        apt-get remove -y containerd.io containerd runc docker.io || true
-        apt-get autoremove -y
+    # - name: Forzar remoción de paquetes conflictivos (Shell)
+    #   shell: |
+    #     apt-get remove -y containerd.io containerd runc docker.io || true
+    #     apt-get autoremove -y
 
     - name: Limpiar caché de apt
       apt:
