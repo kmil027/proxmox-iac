@@ -37,7 +37,7 @@ pipeline {
                 sleep 20 // Aumentamos el tiempo
                 dir('ansible') { // Cambia a tu carpeta de ansible
                     sshagent(['ssh-proxmox-key']) { // El ID de la credencial que creaste en Jenkins
-                        sh 'ANSIBLE_HOST_KEY_CHECKING=False ansible all -i hosts.ini -m ping'
+                        sh 'ANSIBLE_HOST_KEY_CHECKING=False ansible all -i hosts.ini -m ping -e "ansible_python_interpreter=/usr/bin/python3"'
                         sh 'ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i hosts.ini setup.yml'
                     }
                 }
