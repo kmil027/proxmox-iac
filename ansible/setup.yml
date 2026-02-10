@@ -3,17 +3,26 @@
   hosts: mis_nodos
   become: true
   tasks:
-    - name: Limpiar instalaciones conflictivas de Docker/Containerd
-      apt:
-        name: [apache2, containerd, docker, docker-engine, docker.io, runc]
-        state: absent
-        purge: yes
+    - name: Forzar remoción de paquetes conflictivos (Shell)
+      shell: |
+        apt-get remove -y containerd.io containerd runc docker.io || true
+        apt-get autoremove -y
+      args:
+        warn: false
 
-    - name: Instalar Docker y dependencias
+    - name: Limpiar caché de apt
       apt:
-        name: [docker.io, curl, ca-certificates]
-        state: present
         update_cache: yes
+        clean: yes
+
+    - name: Instalar Docker Engine
+      apt:
+        name: docker.io
+        state: present
+      register: docker_install
+      until: docker_install is success
+      retries: 3
+      delay: 5
 
     - name: Asegurar que Docker esté iniciado
       systemd:
@@ -29,6 +38,10 @@
       shell: curl -sfL https://get.k3s.io | sh -
       args:
         creates: /usr/local/bin/k3s
+
+    - name: Esperar a que el token sea generado
+      wait_for:
+        path: /var/lib/rancher/k3s/server/node-token
 
     - name: Obtener el Token del Cluster
       shell: cat /var/lib/rancher/k3s/server/node-token
