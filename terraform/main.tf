@@ -36,7 +36,7 @@ resource "proxmox_lxc" "nuevo_contenedor" {
 
   // Definición de recursos
   cores  = 1
-  memory = 512
+  memory = 1024
   
   rootfs {
     storage = "local" # O "local", dependiendo de tu Proxmox

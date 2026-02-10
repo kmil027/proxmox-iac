@@ -56,10 +56,18 @@
 - name: Configurar K3s Workers (Proxmox LXC)
   hosts: k3s_agents
   become: true
+  serial: 1  # <--- Instala de uno en uno para evitar saturar el CPU del Proxmox
   vars:
-    # ¡OJO! Verifica que esta IP sea la correcta (230 o 226)
-    master_ip: "192.168.10.226"
+    # Usamos la IP del primer host en el grupo k3s_server dinámicamente
+    master_ip: "{{ hostvars[groups['k3s_server'][0]]['ansible_host'] }}"
   tasks:
+    - name: Esperar a que el puerto 6443 del Master esté abierto
+      wait_for:
+        host: "{{ master_ip }}"
+        port: 6443
+        delay: 5
+        timeout: 60
+
     - name: Instalar K3s Agent y unir al clúster
       shell: |
         curl -sfL https://get.k3s.io | K3S_URL=https://{{ master_ip }}:6443 \
