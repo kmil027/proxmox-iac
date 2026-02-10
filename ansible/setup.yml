@@ -8,14 +8,14 @@
     #     name: [containerd.io, containerd, runc]
     #     state: absent
     
-    # - name: Limpiar archivos temporales de apt
-    #   shell: apt-get clean # && rm -rf /var/lib/apt/lists/*
+    - name: Limpiar archivos temporales de apt
+      shell: apt update && apt upgrade -y
 
-    - name: Forzar actualización completa de repositorios
-      apt:
-        update_cache: yes
-        force_apt_get: yes
-        cache_valid_time: 0
+    # - name: Forzar actualización completa de repositorios
+    #   apt:
+    #     update_cache: yes
+    #     force_apt_get: yes
+    #     cache_valid_time: 0
 
     - name: Instalar Dependencias
       apt:
