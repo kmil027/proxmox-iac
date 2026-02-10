@@ -13,6 +13,11 @@
         update_cache: yes
         clean: yes
 
+    - name: Instalar Dependencias
+      apt:
+        name: [curl]
+        state: latest
+
     - name: Fix /dev/kmsg para entornos LXC
       shell: |
         if [ ! -e /dev/kmsg ]; then
