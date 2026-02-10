@@ -7,8 +7,6 @@
       shell: |
         apt-get remove -y containerd.io containerd runc docker.io || true
         apt-get autoremove -y
-      args:
-        warn: false
 
     - name: Limpiar caché de apt
       apt:
