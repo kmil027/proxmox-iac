@@ -8,8 +8,8 @@
     #     name: [containerd.io, containerd, runc]
     #     state: absent
     
-    - name: Limpiar archivos temporales de apt
-      shell: apt update && apt upgrade -y
+    - name: Apt update
+      shell: apt update && apt upgrade -y 
 
     # - name: Forzar actualización completa de repositorios
     #   apt:
