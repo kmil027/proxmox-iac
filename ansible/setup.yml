@@ -9,7 +9,7 @@
         state: absent
     
     - name: Limpiar archivos temporales de apt
-      shell: apt-get clean && rm -rf /var/lib/apt/lists/*
+      shell: apt-get clean # && rm -rf /var/lib/apt/lists/*
 
     - name: Forzar actualización completa de repositorios
       apt:
