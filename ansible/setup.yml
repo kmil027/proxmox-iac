@@ -7,16 +7,21 @@
       apt:
         name: [containerd.io, containerd, runc]
         state: absent
+    
+    - name: Limpiar archivos temporales de apt
+      shell: apt-get clean && rm -rf /var/lib/apt/lists/*
 
-    - name: Actualizar caché de apt
+    - name: Forzar actualización completa de repositorios
       apt:
         update_cache: yes
-        clean: yes
+        force_apt_get: yes
+        cache_valid_time: 0
 
     - name: Instalar Dependencias
       apt:
         name: [curl]
         state: latest
+        update_cache: yes
 
     - name: Fix /dev/kmsg para entornos LXC
       shell: |
