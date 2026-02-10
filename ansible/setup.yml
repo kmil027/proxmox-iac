@@ -2,14 +2,25 @@
 - name: Nivel 3 - Preparación de todos los nodos (LXC Fix)
   hosts: mis_nodos
   become: true
+  vars:
+    # Estas variables fuerzan a apt a no ser interactivo
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+    ansible_stdout_callback: yaml
   tasks:
     # - name: Limpiar paquetes conflictivos
     #   apt:
     #     name: [containerd.io, containerd, runc]
     #     state: absent
     
-    - name: Apt update
-      shell: apt update && apt upgrade -y 
+    - name: Actualizar repositorios y paquetes
+      apt:
+        update_cache: yes
+        upgrade: yes  # O 'yes' si prefieres un upgrade estándar
+        cache_valid_time: 3600  # Solo actualiza si pasó más de una hora (ahorra tiempo)
+      register: apt_res
+      # Forzamos opciones para que no pregunte por archivos de configuración
+      environment:
+        DEBIAN_FRONTEND: noninteractive
 
     # - name: Forzar actualización completa de repositorios
     #   apt:
