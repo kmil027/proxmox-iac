@@ -3,13 +3,13 @@
   hosts: mis_nodos
   become: true
   tasks:
-    - name: Limpiar paquetes conflictivos
-      apt:
-        name: [containerd.io, containerd, runc]
-        state: absent
+    # - name: Limpiar paquetes conflictivos
+    #   apt:
+    #     name: [containerd.io, containerd, runc]
+    #     state: absent
     
-    - name: Limpiar archivos temporales de apt
-      shell: apt-get clean # && rm -rf /var/lib/apt/lists/*
+    # - name: Limpiar archivos temporales de apt
+    #   shell: apt-get clean # && rm -rf /var/lib/apt/lists/*
 
     - name: Forzar actualización completa de repositorios
       apt:
