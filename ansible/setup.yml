@@ -62,11 +62,20 @@
         port: 6443
         timeout: 180
 
-    - name: Fix Mount Flags Worker
-      shell: mount --make-rshared /
+    - name: Fix LXC - Montajes compartidos y Sysfs
+      shell: |
+        mount --make-rshared /
+        mount -o remount,rw /sys
       ignore_errors: yes
 
-    - name: Crear directorios necesarios
+    - name: Engañar a modprobe (LXC Fix)
+      shell: |
+        ln -sf /bin/true /usr/local/bin/modprobe
+        ln -sf /bin/true /sbin/modprobe
+      args:
+        creates: /usr/local/bin/modprobe
+
+    - name: Crear directorios de K3s
       file:
         path: "{{ item }}"
         state: directory
@@ -74,14 +83,32 @@
       with_items:
         - /var/lib/rancher/k3s/agent
         - /var/lib/rancher/k3s/data
-        - /run/k3s
+        - /etc/rancher/k3s
 
-    - name: Instalar K3s Agent
+    - name: Instalar K3s Agent (Sin auto-start para evitar error de rc 1)
       shell: |
-        curl -sfL https://get.k3s.io | K3S_URL=https://{{ master_ip }}:6443 \
+        curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_ENABLE=true INSTALL_K3S_SKIP_START=true \
+        K3S_URL=https://{{ master_ip }}:6443 \
         K3S_TOKEN={{ hostvars[groups['k3s_server'][0]]['node_token']['stdout'] }} \
         INSTALL_K3S_EXEC="agent \
         --protect-kernel-defaults=false \
-        --kube-proxy-arg=conntrack-max-per-core=0" sh -
-      args:
-        creates: /usr/local/bin/k3s-agent
+        --kube-proxy-arg=conntrack-max-per-core=0 \
+        --kubelet-arg=feature-gates=KubeletInUserNamespace=true" sh -
+
+    - name: Configurar servicio para ignorar fallos de modprobe
+      lineinfile:
+        path: /etc/systemd/system/k3s-agent.service
+        regexp: '^ExecStartPre='
+        line: 'ExecStartPre=/bin/true'
+        insertbefore: '^ExecStart='
+
+    - name: Iniciar K3s Agent manualmente
+      systemd:
+        name: k3s-agent
+        state: started
+        enabled: yes
+        daemon_reload: yes
+      register: agent_start
+      until: agent_start is succeeded
+      retries: 5
+      delay: 10
