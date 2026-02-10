@@ -52,6 +52,21 @@
     - name: Obtener el Token del Cluster
       shell: cat /var/lib/rancher/k3s/server/node-token
       register: node_token
+    
+    - name: Crear carpeta de manifiestos (LXC Fix)
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      with_items:
+        - /var/lib/rancher/k3s/agent
+        - /var/lib/rancher/k3s/data
+
+    - name: Montar memoria compartida manualmente (LXC Fix)
+      shell: |
+        mount -t tmpfs tmpfs /run
+        mount -t tmpfs tmpfs /var/run
+      ignore_errors: yes
 
 - name: Configurar K3s Workers (Proxmox LXC)
   hosts: k3s_agents
@@ -84,8 +99,7 @@
         INSTALL_K3S_EXEC="agent \
         --kubelet-arg=protect-kernel-defaults=false \
         --kubelet-arg=make-iptables-util-chains=true \
-        --kube-proxy-arg=conntrack-max-per-core=0 \
-        --kubelet-arg=feature-gates=KubeletInUserNamespace=true" sh -
+        --kube-proxy-arg=conntrack-max-per-core=0" sh -
       args:
         creates: /etc/rancher/k3s/k3s-agent.env
       environment:
