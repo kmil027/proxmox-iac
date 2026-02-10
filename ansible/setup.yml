@@ -16,12 +16,7 @@
     - name: Actualizar repositorios y paquetes
       apt:
         update_cache: yes
-        upgrade: yes  # O 'yes' si prefieres un upgrade estándar
         cache_valid_time: 3600  # Solo actualiza si pasó más de una hora (ahorra tiempo)
-        dpkg_options: 'force-confold,force-confdef' # <--- Evita preguntas interactivas
-      # Forzamos opciones para que no pregunte por archivos de configuración
-      environment:
-        DEBIAN_FRONTEND: noninteractive
 
     # - name: Forzar actualización completa de repositorios
     #   apt:
@@ -32,7 +27,7 @@
     - name: Instalar Dependencias
       apt:
         name: [curl,htop]
-        state: latest
+        state: present
         update_cache: yes
 
     - name: Fix /dev/kmsg para entornos LXC
