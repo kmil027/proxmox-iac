@@ -16,8 +16,9 @@
     - name: Instalar Docker Engine
       apt:
         name: docker.io
-        state: present
+        state: latest
       register: docker_install
+      update_cache: yes
       until: docker_install is success
       retries: 3
       delay: 5
