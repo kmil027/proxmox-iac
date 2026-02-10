@@ -22,7 +22,7 @@ resource "proxmox_lxc" "nuevo_contenedor" {
   hostname    = "nodo${count.index + 1}" # nodo1, nodo2, nodo3
   ostemplate  = "local:vztmpl/ubuntu-24.04-standard_24.04-2_amd64.tar.zst"
   password    = "Camilo08"
-  unprivileged = true # No funciona
+  unprivileged = true 
   start        = true # ¡Importante! Si no arrancan, Ansible no puede entrar
   vmid  = 200 + count.index # Esto forzará los IDs 200, 201 y 202 siempre
   
