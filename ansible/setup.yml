@@ -90,15 +90,20 @@
 
     - name: Pausa para estabilidad del sistema
       pause:
-        seconds: 60
+        seconds: 10
+    
+    - name: Engañar a modprobe en el contenedor
+      shell: |
+        ln -s /bin/true /usr/local/bin/modprobe
+      args:
+        creates: /usr/local/bin/modprobe
 
     - name: Instalar K3s Agent y unir al clúster
       shell: |
         curl -sfL https://get.k3s.io | K3S_URL=https://{{ master_ip }}:6443 \
         K3S_TOKEN={{ hostvars[groups['k3s_server'][0]]['node_token']['stdout'] }} \
         INSTALL_K3S_EXEC="agent \
-        --kubelet-arg=protect-kernel-defaults=false \
-        --kubelet-arg=make-iptables-util-chains=true \
+        --protect-kernel-defaults=false \
         --kube-proxy-arg=conntrack-max-per-core=0 \
         --kubelet-arg=feature-gates=KubeletInUserNamespace=true" sh -
       args:
