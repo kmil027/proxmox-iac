@@ -53,6 +53,11 @@
       shell: cat /var/lib/rancher/k3s/server/node-token
       register: node_token
     
+    - name: Fix Mount Flags para K3s en LXC
+      shell: |
+        mount --make-rshared /
+      ignore_errors: yes
+
     - name: Crear carpeta de manifiestos (LXC Fix)
       file:
         path: "{{ item }}"
@@ -83,11 +88,6 @@
         delay: 5
         timeout: 60
 
-    # - name: Fix Mount Flags para K3s en LXC
-    #   shell: |
-    #     mount --make-rshared /
-    #   ignore_errors: yes
-
     - name: Pausa para estabilidad del sistema
       pause:
         seconds: 60
@@ -99,7 +99,8 @@
         INSTALL_K3S_EXEC="agent \
         --kubelet-arg=protect-kernel-defaults=false \
         --kubelet-arg=make-iptables-util-chains=true \
-        --kube-proxy-arg=conntrack-max-per-core=0" sh -
+        --kube-proxy-arg=conntrack-max-per-core=0 \
+        --kubelet-arg=feature-gates=KubeletInUserNamespace=true" sh -
       args:
         creates: /etc/rancher/k3s/k3s-agent.env
       environment:
