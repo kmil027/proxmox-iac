@@ -26,8 +26,8 @@ pipeline {
             steps {
                 dir('terraform') { // Cambia a tu carpeta de terraform
                     sh 'terraform init'
-                    sh 'terraform destroy -auto-approve'
-                    // sh 'terraform apply -auto-approve'
+                    // sh 'terraform destroy -auto-approve'
+                    sh 'terraform apply -auto-approve'
                 }
             }
         }
