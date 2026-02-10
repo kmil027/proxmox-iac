@@ -17,17 +17,17 @@ provider "proxmox" {
 }
 
 resource "proxmox_lxc" "nuevo_contenedor" {
-  count       = 3  # <--- Esto creará nodo1, nodo2 y nodo3
+  count       = 4  # <--- Esto creará nodo1, nodo2 y nodo3
   target_node = "proxmox-lab" # Nombre de tu nodo Proxmox
   hostname    = "nodo${count.index + 1}" # nodo1, nodo2, nodo3
   ostemplate  = "local:vztmpl/ubuntu-24.04-standard_24.04-2_amd64.tar.zst"
-  password    = "Password123"
+  password    = "Camilo08"
   unprivileged = false
   start        = true # ¡Importante! Si no arrancan, Ansible no puede entrar
   vmid  = 200 + count.index # Esto forzará los IDs 200, 201 y 202 siempre
   
   ssh_public_keys = <<-EOT
-    ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILJReuwQ2miBxUkYbYKCj/ZGrgIdm/PeM/R4sc8RFIWL
+    ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILmxDrS6ZLy/HxPdP5mN135maZcrWyGeF2NpfQbiB4IC
   EOT
 
   features {
