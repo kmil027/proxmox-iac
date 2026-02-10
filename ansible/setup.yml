@@ -56,7 +56,7 @@
 - name: Configurar K3s Workers (Proxmox LXC)
   hosts: k3s_agents
   become: true
-  # serial: 1  # <--- Instala de uno en uno para evitar saturar el CPU del Proxmox
+  serial: 1  # <--- Instala de uno en uno para evitar saturar el CPU del Proxmox
   vars:
     # Usamos la IP del primer host en el grupo k3s_server dinámicamente
     master_ip: "{{ hostvars[groups['k3s_server'][0]]['ansible_host'] }}"
@@ -67,6 +67,11 @@
         port: 6443
         delay: 5
         timeout: 60
+
+    - name: Fix Mount Flags para K3s en LXC
+      shell: |
+        mount --make-rshared /
+      ignore_errors: yes
 
     - name: Pausa para estabilidad del sistema
       pause:
@@ -79,9 +84,8 @@
         INSTALL_K3S_EXEC="agent \
         --kubelet-arg=protect-kernel-defaults=false \
         --kubelet-arg=make-iptables-util-chains=true \
-        --kubelet-arg=feature-gates=KubeletInUserNamespace=true \
         --extra-kube-proxy-args=conntrack-max-per-core=0 \
-        --node-label=container-type=lxc" sh -
+        --kubelet-arg=feature-gates=KubeletInUserNamespace=true" sh -
       args:
         creates: /etc/rancher/k3s/k3s-agent.env
       environment:
