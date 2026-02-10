@@ -80,7 +80,8 @@
         --kubelet-arg=protect-kernel-defaults=false \
         --kubelet-arg=make-iptables-util-chains=true \
         --kubelet-arg=feature-gates=KubeletInUserNamespace=true \
-        --extra-kube-proxy-args=conntrack-max-per-core=0" sh -
+        --extra-kube-proxy-args=conntrack-max-per-core=0 \
+        --node-label=container-type=lxc" sh -
       args:
         creates: /etc/rancher/k3s/k3s-agent.env
       environment:
