@@ -116,6 +116,10 @@
 - name: Nivel 4 - Instalar Almacenamiento Persistente (NFS Provisioner)
   hosts: k3s_server
   become: true
+  vars:
+    # Definimos la ruta del config de K3s para que Helm lo encuentre
+    ansible_env_k3s:
+      KUBECONFIG: /etc/rancher/k3s/k3s.yaml
   tasks:
     - name: Instalar Helm (Script oficial)
       shell: |
@@ -133,6 +137,8 @@
         name: nfs-provisioner
         chart_ref: nfs-subdir-external-provisioner/nfs-subdir-external-provisioner
         release_namespace: kube-system
+        # Pasamos el KUBECONFIG explícitamente al módulo de Helm
+        kubeconfig: /etc/rancher/k3s/k3s.yaml
         values:
           nfs:
             server: "192.168.10.230"
@@ -140,3 +146,4 @@
           storageClass:
             name: nfs-client
             defaultClass: true
+      environment: "{{ ansible_env_k3s }}"
