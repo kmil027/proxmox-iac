@@ -9,7 +9,7 @@
         regexp: 'unprivileged: 1'
         replace: 'unprivileged: 0'
       loop: [200, 201, 202, 203]
-      
+
     - name: Aplicar flags de montaje NFS a los contenedores
       shell: |
         pct set {{ item }} -features "nesting=1,mount=nfs"
@@ -18,7 +18,21 @@
 
     - name: Reiniciar contenedores para aplicar cambios
       shell: |
-        pct stop {{ item }} && pct start {{ item }}
+        pct stop {{ item }}
+      loop: [200, 201, 202, 203]
+      when: pve_features.changed
+
+    - name: Aplicar flags de montaje NFS a los contenedores
+      shell: |
+        pct exec {{ item }} -- chown -R root:root /root/.ssh
+        pct exec {{ item }} -- chmod 700 /root/.ssh
+        pct exec {{ item }} -- chmod 600 /root/.ssh/authorized_keys
+      loop: [200, 201, 202, 203] # Los IDs que definiste en tu main.tf
+      register: pve_features
+
+    - name: Reiniciar contenedores para aplicar cambios
+      shell: |
+        pct start {{ item }}
       loop: [200, 201, 202, 203]
       when: pve_features.changed
 
