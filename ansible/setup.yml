@@ -3,14 +3,7 @@
   hosts: proxmox_host
   become: false # Porque ya entramos como root al host
   tasks:
-    - name: Forzar perfil unconfined en el archivo de configuración
-      lineinfile:
-        path: "/etc/pve/lxc/{{ item }}.conf"
-        line: "lxc.apparmor.profile: unconfined"
-        insertafter: EOF
-      loop: [200, 201, 202, 203]
-      register: config_fix
-
+    
     - name: Aplicar flags de montaje NFS a los contenedores
       shell: |
         pct set {{ item }} -features "nesting=1,mount=nfs"
