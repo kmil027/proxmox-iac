@@ -4,6 +4,14 @@
   gather_facts: yes
   become: true
   tasks:
+    - name: Configurar PermitRootLogin en sshd_config
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PermitRootLogin'
+        line: 'PermitRootLogin yes'
+        state: present
+      notify: Reiniciar SSH
+
     - name: Actualizar repositorios
       apt:
         update_cache: yes
@@ -28,6 +36,11 @@
         ln -sf /bin/true /sbin/modprobe
       args:
         creates: /usr/local/bin/modprobe
+  handlers:
+    - name: Reiniciar SSH
+      service:
+        name: sshd
+        state: restarted
 
 - name: Nivel 2 - Configurar K3s Master (nodo4)
   hosts: k3s_server
@@ -62,11 +75,11 @@
         port: 6443
         timeout: 180
 
-    - name: Fix LXC - Montajes compartidos y Sysfs
-      shell: |
-        mount --make-rshared /
-        mount -o remount,rw /sys
-      ignore_errors: yes
+    # - name: Fix LXC - Montajes compartidos y Sysfs
+    #   shell: |
+    #     mount --make-rshared /
+    #     mount -o remount,rw /sys
+    #   ignore_errors: yes
 
     - name: Engañar a modprobe (LXC Fix)
       shell: |
