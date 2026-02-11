@@ -9,36 +9,36 @@
         regexp: 'unprivileged: 1'
         replace: 'unprivileged: 0'
       loop: [200, 201, 202, 203]
+      register: pve_unprivileged
 
     - name: Aplicar flags de montaje NFS a los contenedores
-      shell: |
-        pct set {{ item }} -features "nesting=1,mount=nfs"
-      loop: [200, 201, 202, 203] # Los IDs que definiste en tu main.tf
-      register: pve_features
-
-    - name: Reiniciar contenedores para aplicar cambios
-      shell: |
-        pct stop {{ item }}
+      shell: "pct set {{ item }} -features 'nesting=1,mount=nfs'"
       loop: [200, 201, 202, 203]
-      when: pve_features.changed
 
-    - name: Aplicar flags de montaje NFS a los contenedores
+    - name: Reiniciar contenedores (Stop) para aplicar cambios de privilegios
+      shell: "pct stop {{ item }}"
+      loop: [200, 201, 202, 203]
+      ignore_errors: yes # Por si ya estaban apagados
+
+    - name: Iniciar contenedores (Start)
+      shell: "pct start {{ item }}"
+      loop: [200, 201, 202, 203]
+
+    - name: Pausa para permitir el arranque del sistema operativo
+      pause:
+        seconds: 15
+
+    - name: Corregir permisos de SSH mediante pct exec (Ahora con el nodo encendido)
       shell: |
         pct exec {{ item }} -- chown -R root:root /root/.ssh
         pct exec {{ item }} -- chmod 700 /root/.ssh
         pct exec {{ item }} -- chmod 600 /root/.ssh/authorized_keys
-      loop: [200, 201, 202, 203] # Los IDs que definiste en tu main.tf
-      register: pve_features
-
-    - name: Reiniciar contenedores para aplicar cambios
-      shell: |
-        pct start {{ item }}
       loop: [200, 201, 202, 203]
-      when: pve_features.changed
+      register: pve_ssh_fix
 
-    - name: Esperar a que los nodos vuelvan a estar en línea
+    - name: Esperar a que los nodos respondan a red
       pause:
-        seconds: 20
+        seconds: 10
 
 - name: Nivel 1 - Preparación de todos los nodos (LXC Fix)
   hosts: mis_nodos
