@@ -1,4 +1,24 @@
 ---
+- name: Nivel 0 - Habilitar permisos NFS en Proxmox Host
+  hosts: proxmox_host
+  become: false # Porque ya entramos como root al host
+  tasks:
+    - name: Aplicar flags de montaje NFS a los contenedores
+      shell: |
+        pct set {{ item }} -features "nesting=1,mount=nfs"
+      loop: [200, 201, 202, 203] # Los IDs que definiste en tu main.tf
+      register: pve_features
+
+    - name: Reiniciar contenedores para aplicar cambios
+      shell: |
+        pct reboot {{ item }}
+      loop: [200, 201, 202, 203]
+      when: pve_features.changed
+
+    - name: Esperar a que los nodos vuelvan a estar en línea
+      pause:
+        seconds: 20
+        
 - name: Nivel 1 - Preparación de todos los nodos (LXC Fix)
   hosts: mis_nodos
   gather_facts: yes
