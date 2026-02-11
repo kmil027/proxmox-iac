@@ -112,3 +112,31 @@
       until: agent_start is succeeded
       retries: 5
       delay: 10
+
+- name: Nivel 4 - Instalar Almacenamiento Persistente (NFS Provisioner)
+  hosts: k3s_server
+  become: true
+  tasks:
+    - name: Instalar Helm (Script oficial)
+      shell: |
+        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+      args:
+        creates: /usr/local/bin/helm
+
+    - name: Añadir repositorio de Helm para NFS
+      kubernetes.core.helm_repository:
+        name: nfs-subdir-external-provisioner
+        repo_url: "https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/"
+
+    - name: Instalar NFS Subdir External Provisioner
+      kubernetes.core.helm:
+        name: nfs-provisioner
+        chart_ref: nfs-subdir-external-provisioner/nfs-subdir-external-provisioner
+        release_namespace: kube-system
+        values:
+          nfs:
+            server: "192.168.10.230"
+            path: "/srv/nfs/k3s-data"
+          storageClass:
+            name: nfs-client
+            defaultClass: true
