@@ -33,7 +33,6 @@ resource "proxmox_lxc" "nuevo_contenedor" {
   features {
     nesting = true
     # keyctl  = true
-    mount   = "nfs;cifs" #
   }
 
   // Definición de recursos
