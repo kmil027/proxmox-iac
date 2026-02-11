@@ -5,7 +5,7 @@
   tasks:
     - name: Aplicar flags de montaje NFS a los contenedores
       shell: |
-        pct set {{ item }} -features "nesting=1,mount=nfs" -lxc.apparmor.profile "unconfined"
+        pct set {{ item }} -features "nesting=1,mount=nfs" --lxc.apparmor.profile unconfined
       loop: [200, 201, 202, 203] # Los IDs que definiste en tu main.tf
       register: pve_features
 
