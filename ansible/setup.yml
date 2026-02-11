@@ -10,7 +10,7 @@
         insertafter: EOF
       loop: [200, 201, 202, 203]
       register: config_fix
-      
+
     - name: Aplicar flags de montaje NFS a los contenedores
       shell: |
         pct set {{ item }} -features "nesting=1,mount=nfs"
@@ -182,7 +182,7 @@
         kubeconfig: /etc/rancher/k3s/k3s.yaml
         values:
           nfs:
-            server: "192.168.10.230"
+            server: "192.168.10.15"
             path: "/srv/nfs/k3s-data"
           storageClass:
             name: nfs-client
