@@ -23,6 +23,7 @@ resource "proxmox_vm_qemu" "nodos_k3s" {
   clone       = "ubuntu-2404-template" # El nombre del template que creamos arriba
   vmid        = 300 + count.index      # Usaremos la serie 300 para VMs
   
+  
   # Recursos de hardware reales
   cores   = 2
   sockets = 1
@@ -33,6 +34,9 @@ resource "proxmox_vm_qemu" "nodos_k3s" {
   # Configuración de Red vía Cloud-Init
   os_type   = "cloud-init"
   ipconfig0 = "ip=192.168.10.${223 + count.index}/24,gw=192.168.10.1"
+  os_type     = "cloud-init"
+  ciuser      = "root"          # O el usuario que prefieras
+  cipassword  = "Camilo08" # Esto permitirá el login por consola
   
   # Tu llave SSH pública para que Ansible pueda entrar
   sshkeys = <<EOF
@@ -44,6 +48,8 @@ resource "proxmox_vm_qemu" "nodos_k3s" {
     type    = "scsi"
     storage = "local"
   }
+  full_clone = true
+  onboot = true
 }
 
 variable "proxmox_api_token_id" {}
