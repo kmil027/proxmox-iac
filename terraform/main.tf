@@ -34,7 +34,6 @@ resource "proxmox_vm_qemu" "nodos_k3s" {
   # Configuración de Red vía Cloud-Init
   os_type   = "cloud-init"
   ipconfig0 = "ip=192.168.10.${223 + count.index}/24,gw=192.168.10.1"
-  os_type     = "cloud-init"
   ciuser      = "root"          # O el usuario que prefieras
   cipassword  = "Camilo08" # Esto permitirá el login por consola
   
