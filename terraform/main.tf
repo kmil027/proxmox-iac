@@ -16,39 +16,33 @@ provider "proxmox" {
   pm_log_file   = "terraform-plugin-proxmox.log"
 }
 
-resource "proxmox_lxc" "nuevo_contenedor" {
-  count       = 4  # <--- Esto creará nodo1, nodo2 y nodo3
-  target_node = "proxmox-lab" # Nombre de tu nodo Proxmox
-  hostname    = "nodo${count.index + 1}" # nodo1, nodo2, nodo3
-  ostemplate  = "local:vztmpl/ubuntu-24.04-standard_24.04-2_amd64.tar.zst"
-  password    = "Camilo08"
-  unprivileged = true
-  start        = true # ¡Importante! Si no arrancan, Ansible no puede entrar
-  vmid  = 200 + count.index # Esto forzará los IDs 200, 201 y 202 siempre
+resource "proxmox_vm_qemu" "nodos_k3s" {
+  count       = 4
+  name        = "nodo${count.index + 1}"
+  target_node = "proxmox-lab"
+  clone       = "ubuntu-2404-template" # El nombre del template que creamos arriba
+  vmid        = 300 + count.index      # Usaremos la serie 300 para VMs
   
-  ssh_public_keys = <<-EOT
-    ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILmxDrS6ZLy/HxPdP5mN135maZcrWyGeF2NpfQbiB4IC
-  EOT
+  # Recursos de hardware reales
+  cores   = 2
+  sockets = 1
+  memory  = 2048
+  cpu     = "host"
+  agent   = 1 # Requiere qemu-guest-agent instalado en el template
 
-  features {
-    nesting = true
-  }
-
-  // Definición de recursos
-  cores  = 1
-  memory = 1024
+  # Configuración de Red vía Cloud-Init
+  os_type   = "cloud-init"
+  ipconfig0 = "ip=192.168.10.${223 + count.index}/24,gw=192.168.10.1"
   
-  rootfs {
-    storage = "local" # O "local", dependiendo de tu Proxmox
-    size    = "8G"
-  }
+  # Tu llave SSH pública para que Ansible pueda entrar
+  sshkeys = <<EOF
+  ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILmxDrS6ZLy/HxPdP5mN135maZcrWyGeF2NpfQbiB4IC
+  EOF
 
-  // Configuración de red
-  network {
-    name   = "eth0"
-    bridge = "vmbr0"
-    ip     = "192.168.10.${223 + count.index}/24"
-    gw     = "192.168.10.1"
+  disk {
+    size    = "20G"
+    type    = "scsi"
+    storage = "local"
   }
 }
 
