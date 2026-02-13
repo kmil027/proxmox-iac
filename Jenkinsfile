@@ -7,13 +7,13 @@ pipeline {
         TF_VAR_proxmox_api_token_secret = credentials('PROXMOX_TOKEN_SECRET')
     }
 
-    // stages {
-    //     stage('Validar Entorno') {
-    //         steps {
-    //             sh 'terraform version'
-    //             sh 'ansible --version'
-    //         }
-    //     }
+    stages {
+        stage('Validar Entorno') {
+            steps {
+                sh 'terraform version'
+                sh 'ansible --version'
+            }
+        }
 
         // stage('Limpieza y Checkout') {
         //     steps {
@@ -28,7 +28,7 @@ pipeline {
                     // sh 'terraform init'
                     // sh 'terraform destroy -auto-approve'
                     sh 'terraform init'
-                    sh 'terraform apply -auto-approve -parallelism=1'
+                    sh 'terraform apply -auto-approve'
                 }
             }
         }
