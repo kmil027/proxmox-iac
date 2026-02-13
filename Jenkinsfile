@@ -15,20 +15,20 @@ pipeline {
             }
         }
 
-        // stage('Limpieza y Checkout') {
-        //     steps {
-        //         cleanWs() 
-        //         checkout scm
-        //     }
-        // }
+        stage('Limpieza y Checkout') {
+            steps {
+                cleanWs() 
+                checkout scm
+            }
+        }
 
         stage('Terraform Apply') {
             steps {
                 dir('terraform') { // Cambia a tu carpeta de terraform
                     // sh 'terraform init'
                     // sh 'terraform destroy -auto-approve'
-                    sh 'terraform init'
-                    sh 'terraform apply -auto-approve'
+                    // sh 'terraform init'
+                    // sh 'terraform apply -auto-approve'
                 }
             }
         }
