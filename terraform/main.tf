@@ -18,37 +18,37 @@ provider "proxmox" {
 
 resource "proxmox_vm_qemu" "nodos_k3s" {
   count       = 4
-  name        = "nodo${count.index + 1}"
+  name        = "nodo${count.index + 1}" [cite: 10]
   target_node = "proxmox-lab"
-  clone       = "ubuntu-2404-template" # El nombre del template que creamos arriba
-  vmid        = 300 + count.index      # Usaremos la serie 300 para VMs
+  clone       = "ubuntu-2404-template"
+  vmid        = 300 + count.index
   
-  
-  # Recursos de hardware reales
-  cores   = 2
-  sockets = 1
-  memory  = 2048
-  cpu     = "host"
-  agent   = 1 # Requiere qemu-guest-agent instalado en el template
+  full_clone  = true
+  onboot      = true
+  agent       = 1 [cite: 11]
 
-  # Configuración de Red vía Cloud-Init
-  os_type   = "cloud-init"
-  ipconfig0 = "ip=192.168.10.${223 + count.index}/24,gw=192.168.10.1"
-  ciuser      = "root"          # O el usuario que prefieras
-  cipassword  = "Camilo08" # Esto permitirá el login por consola
+  cores       = 2
+  sockets     = 1
+  memory      = 2048
+  cpu         = "host"
+
+  # Configuración Cloud-Init para evitar el Crash
+  os_type      = "cloud-init"
+  cloudinit_cdrom_storage = "local"
+  nameserver   = "1.1.1.1"
+  ciuser       = "root"
+  cipassword   = "Camilo08"
+  ipconfig0    = "ip=192.168.10.${223 + count.index}/24,gw=192.168.10.1"
   
-  # Tu llave SSH pública para que Ansible pueda entrar
   sshkeys = <<EOF
   ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILmxDrS6ZLy/HxPdP5mN135maZcrWyGeF2NpfQbiB4IC
   EOF
 
   disk {
-    size    = "20G"
+    size    = "20G" 
     type    = "scsi"
     storage = "local"
   }
-  full_clone = true
-  onboot = true
 }
 
 variable "proxmox_api_token_id" {}
