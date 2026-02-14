@@ -46,7 +46,13 @@ resource "proxmox_vm_qemu" "nodos_k3s" {
   ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILmxDrS6ZLy/HxPdP5mN135maZcrWyGeF2NpfQbiB4IC
   EOF
 
+  network {
+    model  = "virtio"
+    bridge = "vmbr0"
+  }
+
   disk {
+    slot    = 0
     size    = "20G"
     type    = "scsi"
     storage = "local"
