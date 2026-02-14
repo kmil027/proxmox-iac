@@ -4,14 +4,6 @@
   gather_facts: yes
   become: true
   tasks:
-    - name: Configurar PermitRootLogin en sshd_config
-      lineinfile:
-        path: /etc/ssh/sshd_config
-        regexp: '^#?PermitRootLogin'
-        line: 'PermitRootLogin yes'
-        state: present
-      notify: Reiniciar SSH
-
     - name: Actualizar repositorios
       apt:
         update_cache: yes
@@ -21,12 +13,6 @@
       apt:
         name: [curl, htop, nfs-common, open-iscsi, python3-kubernetes]
         state: present
-
-  handlers:
-    - name: Reiniciar SSH
-      service:
-        name: sshd
-        state: restarted
 
 - name: Nivel 2 - Configurar K3s Master (nodo4)
   hosts: k3s_server
@@ -74,7 +60,7 @@
         K3S_TOKEN={{ hostvars[groups['k3s_server'][0]]['node_token']['stdout'] }} \
         INSTALL_K3S_EXEC="agent \
         --protect-kernel-defaults=false \
-        --kube-proxy-arg=conntrack-max-per-core=0 sh -
+        --kube-proxy-arg=conntrack-max-per-core=0" sh -
 
     - name: Iniciar K3s Agent manualmente
       systemd:

@@ -39,9 +39,11 @@ resource "proxmox_vm_qemu" "nodos_k3s" {
     type = "socket"
   }
   
-  cores     = 2
-  sockets   = 1
-  cpu_type  = "host"
+  cpu {
+    cores   = 2
+    sockets = 1
+    type    = "host"
+  }
   memory    = 2048
 
   network {
