@@ -3,7 +3,7 @@ terraform {
     proxmox = {
       source  = "telmate/proxmox"
       # Cambiamos de 2.9.11 a una versión que corrige el crash de Cloud-Init
-      version = "3.0.1-rc6" 
+      version = "3.0.1-rc07" 
     }
   }
 }
