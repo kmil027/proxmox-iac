@@ -29,6 +29,15 @@ resource "proxmox_vm_qemu" "nodos_k3s" {
   # Estas 2 líneas evitan los reinicios constantes y el bucle de booteo
   boot       = "order=scsi0;ide2"
   scsihw     = "virtio-scsi-pci"
+
+  vga {
+    type = "serial0"
+  }
+
+  serial {
+    id   = 0
+    type = "socket"
+  }
   
   cores     = 2
   sockets   = 1
