@@ -23,8 +23,8 @@ resource "proxmox_vm_qemu" "nodos_k3s" {
   vmid        = 200 + count.index
   
   full_clone = true
-  onboot     = true
-  agent      = 1
+  start_at_node_boot = true
+  agent = 1
 
   # Estas 2 líneas evitan los reinicios constantes y el bucle de booteo
   boot       = "order=scsi0;ide2"
