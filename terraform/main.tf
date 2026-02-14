@@ -47,12 +47,13 @@ resource "proxmox_vm_qemu" "nodos_k3s" {
   EOF
 
   network {
+    id     = 0       # <--- Este es el argumento que te falta (corresponde a net0)
     model  = "virtio"
     bridge = "vmbr0"
   }
 
   disk {
-    slot    = 0
+    slot    = 0      # <--- Obligatorio en v3.x (corresponde a scsi0)
     size    = "20G"
     type    = "scsi"
     storage = "local"
