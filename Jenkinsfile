@@ -15,12 +15,12 @@ pipeline {
             }
         }
 
-        stage('Limpieza y Checkout') {
-            steps {
-                cleanWs() 
-                checkout scm
-            }
-        }
+        // stage('Limpieza y Checkout') {
+        //     steps {
+        //         cleanWs() 
+        //         checkout scm
+        //     }
+        // }
 
         stage('Terraform Apply') {
             steps {
@@ -33,16 +33,16 @@ pipeline {
             }
         }
 
-        // stage('Ansible Config') {
-        //     steps {
-        //         dir('ansible') { // Cambia a tu carpeta de ansible
-        //             sshagent(['ssh-proxmox-key']) { // El ID de la credencial que creaste en Jenkins
-        //                 // sh 'ANSIBLE_HOST_KEY_CHECKING=False ansible all -i hosts.ini -m ping -e "ansible_python_interpreter=/usr/bin/python3"'
-        //                 sh 'ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i hosts.ini setup.yml'
-        //             }
-        //         }
-        //     }
-        // }
+        stage('Ansible Config') {
+            steps {
+                dir('ansible') { 
+                    sshagent(['ssh-proxmox-key']) { 
+                        sleep 60
+                        sh 'ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i hosts.ini setup.yml'
+                    }
+                }
+            }
+        }
     }
 
     post {

@@ -1,46 +1,5 @@
 ---
-- name: Nivel 0 - Habilitar permisos NFS en Proxmox Host
-  hosts: proxmox_host
-  become: false # Porque ya entramos como root al host
-  tasks:
-    - name: Modificar archivo conf para quitar unprivileged
-      replace:
-        path: "/etc/pve/lxc/{{ item }}.conf"
-        regexp: 'unprivileged: 1'
-        replace: 'unprivileged: 0'
-      loop: [200, 201, 202, 203]
-      register: pve_unprivileged
-
-    - name: Aplicar flags de montaje NFS a los contenedores
-      shell: "pct set {{ item }} -features 'nesting=1,mount=nfs'"
-      loop: [200, 201, 202, 203]
-
-    - name: Reiniciar contenedores (Stop) para aplicar cambios de privilegios
-      shell: "pct stop {{ item }}"
-      loop: [200, 201, 202, 203]
-      ignore_errors: yes # Por si ya estaban apagados
-
-    - name: Iniciar contenedores (Start)
-      shell: "pct start {{ item }}"
-      loop: [200, 201, 202, 203]
-
-    - name: Pausa para permitir el arranque del sistema operativo
-      pause:
-        seconds: 15
-
-    - name: Corregir permisos de SSH mediante pct exec (Ahora con el nodo encendido)
-      shell: |
-        pct exec {{ item }} -- chown -R root:root /root/.ssh
-        pct exec {{ item }} -- chmod 700 /root/.ssh
-        pct exec {{ item }} -- chmod 600 /root/.ssh/authorized_keys
-      loop: [200, 201, 202, 203]
-      register: pve_ssh_fix
-
-    - name: Esperar a que los nodos respondan a red
-      pause:
-        seconds: 10
-
-- name: Nivel 1 - Preparación de todos los nodos (LXC Fix)
+- name: Nivel 1 - Preparación de todos los nodos
   hosts: mis_nodos
   gather_facts: yes
   become: true
@@ -60,23 +19,9 @@
 
     - name: Instalar Dependencias
       apt:
-        name: [curl, htop, nfs-common, open-iscsi]
+        name: [curl, htop, nfs-common, open-iscsi, python3-kubernetes]
         state: present
 
-    - name: Fix /dev/kmsg para entornos LXC
-      shell: |
-        if [ ! -e /dev/kmsg ]; then
-          ln -s /dev/console /dev/kmsg
-        fi
-      args:
-        creates: /dev/kmsg
-
-    - name: Engañar a modprobe (LXC Kernel Fix)
-      shell: |
-        ln -sf /bin/true /usr/local/bin/modprobe
-        ln -sf /bin/true /sbin/modprobe
-      args:
-        creates: /usr/local/bin/modprobe
   handlers:
     - name: Reiniciar SSH
       service:
@@ -87,10 +32,6 @@
   hosts: k3s_server
   become: true
   tasks:
-    # - name: Fix Mount Flags Master
-    #   shell: mount --make-rshared /
-    #   ignore_errors: yes
-
     - name: Instalar K3s Server (Sin deshabilitar el agente)
       shell: |
         curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server \
@@ -116,19 +57,6 @@
         port: 6443
         timeout: 180
 
-    # - name: Fix LXC - Montajes compartidos y Sysfs
-    #   shell: |
-    #     mount --make-rshared /
-    #     mount -o remount,rw /sys
-    #   ignore_errors: yes
-
-    - name: Engañar a modprobe (LXC Fix)
-      shell: |
-        ln -sf /bin/true /usr/local/bin/modprobe
-        ln -sf /bin/true /sbin/modprobe
-      args:
-        creates: /usr/local/bin/modprobe
-
     - name: Crear directorios de K3s
       file:
         path: "{{ item }}"
@@ -146,15 +74,7 @@
         K3S_TOKEN={{ hostvars[groups['k3s_server'][0]]['node_token']['stdout'] }} \
         INSTALL_K3S_EXEC="agent \
         --protect-kernel-defaults=false \
-        --kube-proxy-arg=conntrack-max-per-core=0 \
-        --kubelet-arg=feature-gates=KubeletInUserNamespace=true" sh -
-
-    - name: Configurar servicio para ignorar fallos de modprobe
-      lineinfile:
-        path: /etc/systemd/system/k3s-agent.service
-        regexp: '^ExecStartPre='
-        line: 'ExecStartPre=/bin/true'
-        insertbefore: '^ExecStart='
+        --kube-proxy-arg=conntrack-max-per-core=0 sh -
 
     - name: Iniciar K3s Agent manualmente
       systemd:
