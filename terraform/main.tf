@@ -16,7 +16,7 @@ provider "proxmox" {
 }
 
 resource "proxmox_vm_qemu" "nodos_k3s" {
-  count       = 4
+  count       = 1
   name        = "nodo${count.index + 1}"
   target_node = "proxmox-lab"
   clone       = "ubuntu-2404-template"
