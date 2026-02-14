@@ -50,6 +50,12 @@ resource "proxmox_vm_qemu" "nodos_k3s" {
     storage = "local"
   }
 
+  disk {
+    slot    = "ide2"
+    type    = "cloudinit"
+    storage = "local" # O el storage donde quieras guardar el archivo .iso de config
+  }
+
   # Cloud-Init
   os_type    = "cloud-init"
   ciuser     = "root"
