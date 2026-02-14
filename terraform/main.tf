@@ -29,35 +29,37 @@ resource "proxmox_vm_qemu" "nodos_k3s" {
   onboot     = true
   agent      = 1
 
-  cores   = 2
-  sockets = 1
-  memory  = 2048
-  cpu     = "host"
+  cores     = 2
+  sockets   = 1
+  # CORRECCIÓN CPU
+  cpu_type  = "host" 
+  memory    = 2048
 
-  os_type    = "cloud-init"
-  ciuser     = "root"
-  cipassword = "Camilo08"
-  
-  # Obligatorio para evitar que la API devuelva valores vacíos que rompan el plugin
-  nameserver   = "8.8.8.8"
-  ipconfig0    = "ip=192.168.10.${223 + count.index}/24,gw=192.168.10.1"
-  
-  sshkeys = <<EOF
-  ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILmxDrS6ZLy/HxPdP5mN135maZcrWyGeF2NpfQbiB4IC
-  EOF
-
+  # Red (Asegúrate de tener el ID)
   network {
-    id     = 0       # <--- Este es el argumento que te falta (corresponde a net0)
+    id     = 0
     model  = "virtio"
     bridge = "vmbr0"
   }
 
+  # CORRECCIÓN DISCO
   disk {
-    slot    = 0      # <--- Obligatorio en v3.x (corresponde a scsi0)
+    slot    = "scsi0"  # <--- Ahora con el nombre completo
     size    = "20G"
-    type    = "scsi"
+    type    = "disk"   # <--- 'disk' para discos duros
     storage = "local"
   }
+
+  # Cloud-Init
+  os_type    = "cloud-init"
+  ciuser     = "root"
+  cipassword = "Camilo08"
+  nameserver = "8.8.8.8"
+  ipconfig0  = "ip=192.168.10.${223 + count.index}/24,gw=192.168.10.1"
+  
+  sshkeys = <<EOF
+  ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILmxDrS6ZLy/HxPdP5mN135maZcrWyGeF2NpfQbiB4IC
+  EOF
 }
 
 variable "proxmox_api_token_id" {}
