@@ -16,11 +16,11 @@ provider "proxmox" {
 }
 
 resource "proxmox_vm_qemu" "nodos_k3s" {
-  count       = 1
+  count       = 4
   name        = "nodo${count.index + 1}"
   target_node = "proxmox-lab"
-  clone       = "ubuntu-2404-template"
-  vmid        = 300 + count.index
+  clone       = "ubuntu-tp"
+  vmid        = 200 + count.index
   
   full_clone = true
   onboot     = true
